@@ -1,0 +1,382 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0 user-scalable=no" />
+    <meta http-equiv="X-UA-Compatible" content="ie=edge" />
+    <title>Document</title>
+    <script src="//at.alicdn.com/t/font_1362078_knn1xxrrug.js"></script>
+    <style>
+        .icon {
+            width: 1em;
+            height: 1em;
+            vertical-align: -0.15em;
+            fill: currentColor;
+            overflow: hidden;
+        }
+
+        .clearFix {
+            content: '';
+            display: block;
+            clear: both;
+        }
+
+        ul,
+        ol {
+            list-style: none;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+
+        }
+
+        #canvas {
+            background-color: rgb(255, 242, 187);
+            display: block;
+        }
+
+        #brush {
+            width: 1.8em;
+            height: 1.8em;
+            translate: all 0.2s ease-out;
+            margin-right: 0.5em;
+            vertical-align: top;
+        }
+
+        #eraser {
+            width: 2.3em;
+            height: 2.3em;
+            vertical-align: top;
+            translate: all 0.2s ease-out;
+            margin-right: 0.5em;
+        }
+
+        #bin {
+            width: 2em;
+            height: 2em;
+            translate: all 0.2s ease-out;
+            vertical-align: top;
+            margin-right: 0.5em;
+        }
+
+        #save {
+            width: 2em;
+            height: 2em;
+            cursor: pointer;
+            vertical-align: top;
+        }
+
+        #wrap {
+            position: fixed;
+            top: 1em;
+            left: 1.2em;
+        }
+
+        .active {
+            transform: scale(1.5);
+        }
+
+        .current {
+            transform: scaleX(1.5);
+        }
+
+        #colors {
+            position: fixed;
+            width: 3.5em;
+            left: 1.2em;
+            top: 5em;
+        }
+
+        #colors>li {
+            float: left;
+            width: 1em;
+            height: 1em;
+            margin: 0.5em 0;
+            border-radius: 50%;
+            background-color: #0d2baf;
+            translate: all 0.2s ease-out;
+        }
+
+        #colors>li:nth-child(odd) {
+            margin-right: 1.5em;
+        }
+
+        .size {
+            position: fixed;
+            right: 1.2em;
+            top: 3em;
+            height: 3em;
+            padding: 1em;
+        }
+
+        #thin {
+            width: 2em;
+            height: 0;
+            border: 4px solid #000;
+            border-width: 4px;
+
+        }
+
+        #thick {
+            width: 2em;
+            height: 0;
+            border: 6px solid #000;
+            border-width: 6px;
+            margin-top: 1em;
+        }
+    </style>
+</head>
+
+<body>
+
+    <canvas id="canvas" width="300" height="300"></canvas>
+    <div id="wrap">
+        <svg class="icon active" id="brush" aria-hidden="true">
+            <use xlink:href="#icon-brush"></use>
+        </svg>
+        <svg class="icon" id="eraser" aria-hidden="true">
+            <use xlink:href="#icon-eraser"></use>
+        </svg>
+        <svg class="icon" id="bin" aria-hidden="true">
+            <use xlink:href="#icon-bin-"></use>
+        </svg>
+        <svg class="icon" id="save" aria-hidden="true">
+            <use xlink:href="#icon-save"></use>
+        </svg>
+    </div>
+    <ul id="colors" class="clearFix">
+        <li></li>
+        <li></li>
+        <li></li>
+        <li></li>
+        <li></li>
+        <li></li>
+        <li></li>
+        <li></li>
+        <li></li>
+        <li></li>
+    </ul>
+
+    <ol class="size">
+        <li id="thin" class="current"></li>
+        <li id="thick"></li>
+    </ol>
+    <a href="">
+
+    </a>
+
+</body>
+<script>
+    var pageWidth = document.documentElement.clientWidth;
+    var pageHeight = document.documentElement.clientHeight;
+    var canvas = document.getElementById("canvas");
+    var context = canvas.getContext("2d");
+    var eraser = document.getElementById("eraser");
+    var brush = document.getElementById("brush");
+    var bin = document.getElementById("bin");
+    var save = document.getElementById("save");
+    var wrap = document.getElementById("wrap");
+    var svgs = document.querySelectorAll('svg')
+    var sizes = document.querySelectorAll('.size>li');
+    var mouseDown = false;
+    var eraserEnabled = false;
+    var lis = document.querySelectorAll('#colors>li');
+    var colors = ['black', '#ff7575', '#ffac5e', '#8eff6c', 'blue', 'deeppink', '#d479ff', '#59e9be', '#209b61', '#0d2baf'];
+    var lineWidth = 4;
+    
+    autoFullSize();
+    window.onresize = function () {
+        autoFullSize();
+    }
+    paintColor(lis, colors);//给色盘填充颜色
+    listenToMouse();
+    function paintColor(lis, colors) {
+        lis.forEach(function (li) {//遍历所有色盘，填充颜色
+            var index = [...lis].indexOf(li)
+            li.style.background = colors[index];
+        })
+        lis[0].classList.add('active');//默认第一个色盘(黑色)为激活状态
+
+        lis.forEach(function (li) {//给每个色盘绑定点击事件，点击色盘，色盘放大，笔的颜色相应变化
+            li.onclick = function () {
+                var color = this.style.background;//获取点击到的色盘颜色
+                if (!eraserEnabled) {//只有使用笔刷时才能点击色板改颜色
+                    lis.forEach(function (node) {
+                        node.classList.remove('active');//先排除所有色盘的激活状态
+                    })
+                    this.classList.add('active');//点击到的色盘设置激活
+                    brush.style.color = color;//改笔刷图标的颜色
+                    context.fillStyle = color;//改画画的笔触颜色
+                    context.strokeStyle = color;
+                }
+            }
+        })
+    }    
+    function autoFullSize() {
+        //让canvas宽高等于视口宽高，实现全屏
+        pageWidth = document.documentElement.clientWidth;
+        pageHeight = document.documentElement.clientHeight;
+        canvas.width = pageWidth;
+        canvas.height = pageHeight;
+    }
+    function drawCircle(x, y, r) {
+        //画圆
+        context.beginPath();
+        context.arc(x, y, r, 0, Math.PI * 2);//2π=360°
+        context.fill();
+    }
+    function drawLine(x1, x2, y1, y2) {
+        //画线，由于浏览器定时监听坐标，导致画的太快会产生不连续的点，故在两点间连线使画画连续
+        context.beginPath();
+        context.moveTo(x1, y1);
+        context.lineWidth = lineWidth;
+        context.lineTo(x2, y2);
+        context.stroke();
+        context.closePath();
+    }
+    function listenToMouse() {
+        //特性检测
+        if (document.body.ontouchstart !== undefined) {
+            //触屏设备
+            canvas.ontouchstart = function (touchEvent) {
+                mouseDown = !mouseDown;
+                var x = touchEvent.touches[0].clientX;
+                var y = touchEvent.touches[0].clientY;
+                lastPoint = { x: x, y: y };
+                if (!eraserEnabled) {
+                    drawCircle(x, y, lineWidth-1);
+                } else {
+                    context.clearRect(x - 15, y - 15, 30, 30);
+                }
+            };
+            canvas.ontouchmove = function (touchEvent) {
+                var x = touchEvent.touches[0].clientX;
+                var y = touchEvent.touches[0].clientY;
+                var newPoint = { x: x, y: y };
+                if (mouseDown) {
+                    if (!eraserEnabled) {
+                        drawLine(lastPoint["x"], x, lastPoint["y"], y);
+                        lastPoint = newPoint;
+                    } else {
+                        context.clearRect(x - 15, y - 15, 30, 30);
+                    }
+                }
+            };
+            canvas.ontouchend = function () {
+                mouseDown = !mouseDown;
+            };
+            eraser.ontouchstart = function () {
+                eraserEnabled = true;
+                active(svgs);
+                this.classList.add('active');
+            };
+            brush.ontouchstart = function () {
+                eraserEnabled = false;
+                active(svgs);
+                this.classList.add('active');
+            };
+            bin.ontouchstart = function () {
+                eraserEnabled = true;
+                active(svgs);
+                this.classList.add('active');
+                context.clearRect(0, 0, pageWidth, pageHeight);
+            }
+            sizes.forEach(function (size) {
+                size.ontouchstart = function () {
+                    current(sizes);
+                    this.classList.add('current');
+                    lineWidth = getComputedStyle(this)['borderWidth'][0]//获取笔刷大小
+                }
+                
+            })
+            save.onclick = function () {
+                var saveULR = canvas.toDataURL('image/jpg');
+                var a = document.createElement('a');
+                a.target = '_blank';
+                a.href = saveULR;
+                a.download = '我的画';
+                document.body.appendChild(a);
+                a.click();
+            }
+
+        } else {
+            canvas.onmousedown = function (mouse) {
+                mouseDown = !mouseDown;
+                var x = mouse.clientX;
+                var y = mouse.clientY;
+                lastPoint = { x: x, y: y };
+                if (!eraserEnabled) {
+                    drawCircle(x, y, lineWidth - 2);
+                } else {
+                    context.clearRect(x - 15, y - 15, 30, 30);
+                }
+            };
+            canvas.onmousemove = function (mouse) {
+                var x = mouse.clientX;
+                var y = mouse.clientY;
+                var newPoint = { x: x, y: y };
+                if (mouseDown) {
+                    if (!eraserEnabled) {
+                        drawLine(lastPoint["x"], x, lastPoint["y"], y);
+                        lastPoint = newPoint;
+                    } else {
+                        context.clearRect(x - 15, y - 15, 30, 30);
+                    }
+                }
+            };
+            canvas.onmouseup = function () {
+                mouseDown = !mouseDown;
+            };
+            eraser.onclick = function () {
+                eraserEnabled = true;
+                active(svgs);
+                this.classList.add('active');
+            };
+            brush.onclick = function () {
+                eraserEnabled = false;
+                active(svgs);
+                this.classList.add('active');
+            };
+            bin.onclick = function () {
+                eraserEnabled = true;
+                active(svgs);
+                this.classList.add('active');
+                context.clearRect(0, 0, pageWidth, pageHeight);
+            }
+            sizes.forEach(function (size) {
+                size.onclick = function () {
+                    current(sizes);
+                    this.classList.add('current');
+                    lineWidth = getComputedStyle(this)['borderWidth'][0]//获取笔刷大小
+
+                }
+            })
+            save.onclick = function () {
+                var saveULR = canvas.toDataURL('image/jpg');
+                var a = document.createElement('a');
+                a.target = '_blank';
+                a.href = saveULR;
+                a.download = '我的画';
+                document.body.appendChild(a);
+                a.click();
+            }
+
+        }
+    }
+
+    function active(ele) {
+        ele.forEach(function (e) {
+            e.classList.remove('active');
+        })
+    }
+    function current(ele) {
+        ele.forEach(function (e) {
+            e.classList.remove('current');
+        })
+    }
+</script>
+
+</html>
