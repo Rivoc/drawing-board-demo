@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0 user-scalable=no" />
+    <meta http-equiv="X-UA-Compatible" content="ie=edge" />
+    <title>Document</title>
+    <script src="//at.alicdn.com/t/font_1362078_knn1xxrrug.js"></script>
+    <link rel="stylesheet" href="./style.css">
+</head>
+<body>
+    <canvas id="canvas" width="300" height="300"></canvas>
+    <div id="wrap">
+        <svg class="icon active" id="brush" aria-hidden="true">
+            <use xlink:href="#icon-brush"></use>
+        </svg>
+        <svg class="icon" id="eraser" aria-hidden="true">
+            <use xlink:href="#icon-eraser"></use>
+        </svg>
+        <svg class="icon" id="bin" aria-hidden="true">
+            <use xlink:href="#icon-bin-"></use>
+        </svg>
+        <svg class="icon" id="save" aria-hidden="true">
+            <use xlink:href="#icon-save"></use>
+        </svg>
+    </div>
+    <ul id="colors" class="clearFix">
+        <li></li>
+        <li></li>
+        <li></li>
+        <li></li>
+        <li></li>
+        <li></li>
+        <li></li>
+        <li></li>
+        <li></li>
+        <li></li>
+    </ul>
+    <ol class="size">
+        <li id="thin" class="current"></li>
+        <li id="thick"></li>
+    </ol>
+</body>
+<script src="./main.js"></script>
+</html>

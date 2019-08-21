@@ -1,0 +1,119 @@
+.icon {
+    width: 1em;
+    height: 1em;
+    vertical-align: -0.15em;
+    fill: currentColor;
+    overflow: hidden;
+}
+
+.clearFix {
+    content: '';
+    display: block;
+    clear: both;
+}
+
+ul,
+ol {
+    list-style: none;
+}
+
+* {
+    margin: 0;
+    padding: 0;
+
+}
+
+#canvas {
+    background-color: rgb(255, 242, 187);
+    display: block;
+}
+
+#brush {
+    width: 1.8em;
+    height: 1.8em;
+    translate: all 0.2s ease-out;
+    margin-right: 0.5em;
+    vertical-align: top;
+}
+
+#eraser {
+    width: 2.3em;
+    height: 2.3em;
+    vertical-align: top;
+    translate: all 0.2s ease-out;
+    margin-right: 0.5em;
+}
+
+#bin {
+    width: 2em;
+    height: 2em;
+    translate: all 0.2s ease-out;
+    vertical-align: top;
+    margin-right: 0.5em;
+}
+
+#save {
+    width: 2em;
+    height: 2em;
+    cursor: pointer;
+    vertical-align: top;
+}
+
+#wrap {
+    position: fixed;
+    top: 1em;
+    left: 1.2em;
+}
+
+.active {
+    transform: scale(1.5);
+}
+
+.current {
+    transform: scaleX(1.5);
+}
+
+#colors {
+    position: fixed;
+    width: 3.5em;
+    left: 1.2em;
+    top: 5em;
+}
+
+#colors>li {
+    float: left;
+    width: 1em;
+    height: 1em;
+    margin: 0.5em 0;
+    border-radius: 50%;
+    background-color: #0d2baf;
+    translate: all 0.2s ease-out;
+}
+
+#colors>li:nth-child(odd) {
+    margin-right: 1.5em;
+}
+
+.size {
+    position: fixed;
+    right: 1.2em;
+    top: 3em;
+    height: 3em;
+    padding: 1em;
+}
+
+#thin {
+    width: 2em;
+    height: 0;
+    border: 4px solid #000;
+    border-width: 4px;
+
+}
+
+#thick {
+    width: 2em;
+    height: 0;
+    border: 6px solid #000;
+    border-width: 6px;
+    margin-top: 1em;
+}
